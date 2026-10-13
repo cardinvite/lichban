@@ -1,0 +1,10 @@
+{
+  "name": "lichban-web",
+  "private": true,
+  "description": "Lịch để bàn: PWA + Google Apps Script + Google Sheet + Telegram",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build:gas": "bash scripts/build-gas.sh",
+    "serve": "python3 -m http.server -d docs 8000"
+  }
+}

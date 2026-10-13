@@ -1,0 +1,16 @@
+{
+  "name": "Lịch Bàn",
+  "short_name": "Lịch",
+  "description": "Lịch để bàn có âm lịch, ghi chú theo ngày và nhắc nhở qua Telegram.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1d4c9c",
+  "theme_color": "#1d4c9c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
