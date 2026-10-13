@@ -39,8 +39,10 @@ npm run serve     # http://localhost:8000
 |---|---|
 | `APP_PASSWORD` | mật khẩu tự chọn, VD `lich-nha-minh-2026` |
 
-Mỗi máy chỉ phải nhập mật khẩu một lần. Ai có URL mà không có mật khẩu thì không xem hay sửa được gì. Nhập sai 10 lần trong 10 phút thì bị khoá tạm 10 phút.
-Không đặt `APP_PASSWORD` thì ai có URL cũng dùng được.
+- **Ai cũng xem được lịch** (ngày, âm lịch, ngày lễ) mà không cần mật khẩu.
+- **Ghi chú chỉ hiện và chỉ thêm/sửa được sau khi nhập đúng mật khẩu** (bấm 🔒). Mỗi máy nhập một lần.
+- Ghi chú lưu vào Google Sheet. Nhập sai 10 lần trong 10 phút thì khoá tạm 10 phút (khách chỉ xem lịch không bị tính).
+- Không đặt `APP_PASSWORD` thì ai bấm 🔒 cũng mở được ghi chú, nên **hãy luôn đặt**.
 
 1. Trình chỉnh sửa → mở **Code.gs** → chọn hàm **setup** → **▶ Chạy**.
    Lần đầu Google hỏi quyền: **Xem xét quyền** → chọn tài khoản → **Nâng cao** → **Đi tới LichBan API (không an toàn)** → **Cho phép**.
@@ -82,7 +84,7 @@ Mọi thiết bị mở web sẽ tự dùng URL này, không phải nhập gì. 
 1. Repo **cardinvite/lichban** phải để **Public**.
 2. **Settings → Pages** → *Source*: **Deploy from a branch** → Branch **main**, thư mục **/docs** → **Save**.
 3. Khoảng 1 phút sau mở **https://cardinvite.github.io/lichban/**
-4. Web hỏi mật khẩu → nhập `APP_PASSWORD`. Bấm ⚙️ → **Kiểm tra kết nối** → phải báo *Kết nối được với Google Sheet*. Chấm trạng thái cạnh ⚙️ chuyển xanh lá.
+4. Bấm 🔒 → nhập `APP_PASSWORD` → ghi chú hiện ra. Bấm ⚙️ → **Kiểm tra kết nối** → phải báo *Kết nối được với Google Sheet*. Chấm trạng thái cạnh ⚙️ chuyển xanh lá.
 
 ---
 
@@ -111,6 +113,7 @@ Bot gửi: nhắc nhở đúng giờ đã đặt (lỡ lần chạy thì gửi b
 **Android:** mở bằng **Chrome** → menu ⋮ → **Thêm vào màn hình chính** / **Cài đặt ứng dụng**.
 
 **Cách dùng**
+- Chưa nhập mật khẩu: chỉ xem lịch; bấm 🔒 để mở ghi chú.
 - Chạm vào một ngày → **Thêm ghi chú** → chọn kiểu đánh dấu (khoanh tròn, chấm, gạch chân) và màu bút.
 - Bật **Nhắc qua Telegram** → lặp lại: một lần / hằng năm dương lịch / hằng năm âm lịch / hằng tháng âm lịch.
 - Ô **Notes** dưới lịch: việc chung của cả tháng, tự lưu khi ngừng gõ.
@@ -139,9 +142,9 @@ Bot gửi: nhắc nhở đúng giờ đã đặt (lỡ lần chạy thì gửi b
 | Chấm xám, báo "chưa liên kết Apps Script" | `API_URL` trong `docs/js/config.js` còn trống, hoặc chưa push |
 | "Không kết nối được máy chủ" | Web App phải để *Người có quyền truy cập: Bất kỳ ai*. URL phải kết thúc bằng `/exec` |
 | "Máy chủ trả về trang HTML" | URL sai (đang dùng `/dev`?) hoặc script lỗi: Apps Script → **Lần thực thi** xem lỗi |
-| Hỏi mật khẩu mãi / "Mật khẩu không đúng" | So với `APP_PASSWORD` trong Script Properties (thừa dấu cách?) |
+| Vẫn thấy 🔒 / "Mật khẩu không đúng" | So với `APP_PASSWORD` trong Script Properties (thừa dấu cách?) |
 | "Nhập sai mật khẩu quá nhiều lần" | Chờ 10 phút rồi nhập lại |
-| Đổi mật khẩu | Sửa `APP_PASSWORD`; các máy sẽ được hỏi mật khẩu mới ở lần mở sau |
+| Đổi mật khẩu | Sửa `APP_PASSWORD`; các máy đã đăng nhập sẽ khoá ghi chú và hỏi mật khẩu mới ở lần đồng bộ sau |
 | "Apps Script đang chạy bản cũ" | Tạo phiên bản deployment mới |
 | Không nhận tin Telegram | Chạy lại `testTelegram`; xem ⏰ Trình kích hoạt còn `hourlyTick`; xem tab **Log** trong Sheet |
 | Sửa trên máy này chưa thấy trên máy kia | Đóng mở lại app (app đồng bộ mỗi lần mở lại); xem chấm trạng thái |

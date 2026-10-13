@@ -30,9 +30,9 @@ const handlers = {
   today: () => { const t = todayParts(); go({ y: t.y, m: t.m }); },
   jump: (ym) => go(ym),
   settings: openSettings,
+  unlock: openPassword,
   sync: () => {
     if (!store.configured) { openSettings(); return; }
-    if (store.status === 'auth') { openPassword(); return; }
     if (store.status === 'error') toast(store.statusMessage, 'error');
     store.sync();
   },

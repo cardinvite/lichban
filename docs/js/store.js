@@ -7,6 +7,7 @@ const KEYS = {
   pending: 'lichban.pending.v1',
   server: 'lichban.server.v1',
   password: 'lichban.password.v1',
+  unlocked: 'lichban.unlocked.v1',
 };
 
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID()
@@ -31,6 +32,8 @@ class Store extends EventTarget {
     this.pending = readJson(KEYS.pending, []);
     this.apiUrl = API_URL.trim();
     this.password = readJson(KEYS.password, '');
+    // Đã liên kết Apps Script thì chỉ hiện ghi chú sau khi máy chủ chấp nhận mật khẩu của máy này
+    this.unlocked = !this.configured || readJson(KEYS.unlocked, false);
     this.status = this.configured ? (this.pending.length ? 'pending' : 'synced') : 'local';
     this.statusMessage = '';
     this.syncing = null;
@@ -39,9 +42,18 @@ class Store extends EventTarget {
   }
 
   get configured() { return !!this.apiUrl; }
+  get locked() { return !this.unlocked; }
+
+  setUnlocked(value) {
+    if (this.unlocked === value) return;
+    this.unlocked = value;
+    writeJson(KEYS.unlocked, value);
+    this.emit();
+  }
 
   // ───── Đọc ─────
   notesForDay(key) {
+    if (this.locked) return [];
     const [y, m, d] = key.split('-').map(Number);
     return [...this.notes.values()]
       .filter((n) => !n.deleted && n.year === y && n.month === m && n.day === d)
@@ -50,6 +62,7 @@ class Store extends EventTarget {
 
   notesIndex() {
     const idx = new Map();
+    if (this.locked) return idx;
     for (const n of this.notes.values()) {
       if (n.deleted) continue;
       const k = `${n.year}-${String(n.month).padStart(2, '0')}-${String(n.day).padStart(2, '0')}`;
@@ -61,11 +74,12 @@ class Store extends EventTarget {
   }
 
   reminderFor(noteId) {
+    if (this.locked) return null;
     for (const r of this.reminders.values()) if (r.noteId === noteId && !r.deleted) return r;
     return null;
   }
 
-  monthNote(key) { return this.monthNotes.get(key)?.text || ''; }
+  monthNote(key) { return this.locked ? '' : this.monthNotes.get(key)?.text || ''; }
 
   // ───── Ghi ─────
   saveNote(input) {
@@ -151,6 +165,8 @@ class Store extends EventTarget {
   /** Gửi hàng đợi rồi kéo thay đổi mới. Gọi nhiều lần cùng lúc chỉ chạy một. */
   sync() {
     if (!this.configured) { this.setStatus('local'); return Promise.resolve(); }
+    // Khách xem lịch (chưa có mật khẩu): không gọi máy chủ, chỉ hiện lịch
+    if (this.locked && !this.password) { this.setStatus('locked'); return Promise.resolve(); }
     if (this.syncing) { this.syncAgain = true; return this.syncing; }
     this.syncing = (async () => {
       this.setStatus('syncing');
@@ -159,12 +175,17 @@ class Store extends EventTarget {
           this.syncAgain = false;
           await this.flush();
           await this.pull();
+          this.setUnlocked(true);
         } while (this.syncAgain);
         this.setStatus(this.pending.length ? 'pending' : 'synced');
       } catch (err) {
         console.error(err);
         if (err.code === 'UNAUTHORIZED') {
-          this.setStatus('auth', err.message);
+          // Mật khẩu đã đổi: quên mật khẩu cũ (để không gửi sai liên tục) và khoá ghi chú
+          this.password = '';
+          writeJson(KEYS.password, '');
+          this.setUnlocked(false);
+          this.setStatus('locked', err.message);
           this.dispatchEvent(new Event('auth'));
         } else {
           this.setStatus('error', err.message);
@@ -279,6 +300,7 @@ class Store extends EventTarget {
     await this.testConnection(password);
     this.password = password;
     writeJson(KEYS.password, password);
+    this.setUnlocked(true);
     this.sync();
   }
 }

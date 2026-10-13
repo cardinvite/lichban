@@ -108,6 +108,8 @@ test('APP_PASSWORD: sai bị từ chối, đúng thì vào, sai nhiều lần b�
   assert.equal(env.call('getAll', {}).code, 'UNAUTHORIZED');
   assert.equal(env.call('getAll', {}, 'sai').code, 'UNAUTHORIZED');
   assert.equal(env.call('getAll', {}, 'lich2026').ok, true);
+  for (let i = 0; i < 20; i++) env.call('getAll', {});
+  assert.equal(env.call('getAll', {}, 'lich2026').ok, true, 'để trống mật khẩu không làm khoá');
   for (let i = 0; i < 10; i++) env.call('getAll', {}, 'sai');
   assert.equal(env.call('getAll', {}, 'lich2026').code, 'LOCKED');
 });

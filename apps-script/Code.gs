@@ -115,7 +115,7 @@ function checkPassword_(given) {
     diff |= expected.charCodeAt(i) ^ (given.charCodeAt(i) || 0);
   }
   if (diff !== 0) {
-    cache.put('pwFails', String(fails + 1), LOCK_SECONDS);
+    if (given) cache.put('pwFails', String(fails + 1), LOCK_SECONDS); // để trống không tính là đoán sai
     throw new ApiError('UNAUTHORIZED', 'Mật khẩu không đúng.');
   }
 }

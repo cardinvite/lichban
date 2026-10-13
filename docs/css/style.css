@@ -147,8 +147,8 @@ button { cursor: pointer; }
 .sync-dot[data-status="pending"]::after,
 .sync-dot[data-status="syncing"]::after { background: var(--warn); }
 .sync-dot[data-status="syncing"]::after { animation: pulse 1s ease-in-out infinite alternate; }
-.sync-dot[data-status="error"]::after,
-.sync-dot[data-status="auth"]::after { background: var(--red); }
+.sync-dot[data-status="error"]::after { background: var(--red); }
+.lock-btn { margin-left: auto; font-size: 1rem; }
 @keyframes pulse { to { opacity: .35; } }
 
 /* ───── Lưới ───── */
@@ -256,6 +256,13 @@ button { cursor: pointer; }
 .mini-day { padding: 2px 0; font-variant-numeric: tabular-nums; }
 .mini .sun { color: var(--red); }
 .mini-day.today { background: var(--highlight); border-radius: 3px; }
+/* Ngày có ghi chú: chấm nhỏ màu bút dưới số */
+.mini-day.has-note { position: relative; font-weight: 700; }
+.mini-day.has-note::after {
+  content: ""; position: absolute; left: 50%; bottom: -1px;
+  width: 4px; height: 4px; margin-left: -2px; border-radius: 50%;
+  background: var(--note);
+}
 
 .notes-box { display: flex; flex-direction: column; gap: 6px; }
 .notes-label {
@@ -270,6 +277,11 @@ button { cursor: pointer; }
   background: repeating-linear-gradient(transparent 0 25px, var(--line) 25px 26px);
   font-family: var(--font-hand); font-size: 1.1rem; line-height: 26px; /* ≥16px: iOS không tự phóng to */
   padding: 0 2px;
+}
+.unlock-btn {
+  min-height: 44px; padding: 0 16px; border-radius: 22px;
+  border: 1px dashed var(--muted); background: none;
+  font-size: .9rem; text-align: left;
 }
 .local-hint { font-size: .78rem; color: var(--muted); line-height: 1.45; margin: 0; }
 .link-btn { border: 0; background: none; padding: 0; color: var(--sat); text-decoration: underline; font-size: inherit; }
@@ -406,6 +418,7 @@ legend { font-size: .8rem; font-weight: 700; padding: 0 4px; }
   .icon-btn { width: 36px; height: 36px; }
   .today-btn { height: 36px; padding: 0 14px; border-radius: 18px; }
   .sync-dot { width: 22px; height: 36px; margin-left: 0; }
+  .lock-btn { margin-left: 0; }
   .sync-dot::after { left: 6px; top: 13px; }
   .year-num { font-size: 2.6rem; }
   .month-vi { font-size: 3.1rem; }

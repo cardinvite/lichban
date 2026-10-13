@@ -22,7 +22,7 @@ export function renderHeader(root, view, handlers) {
     syncing: 'Đang đồng bộ…',
     pending: 'Chờ gửi lên Google Sheet',
     error: 'Lỗi đồng bộ: ' + store.statusMessage,
-    auth: 'Cần nhập mật khẩu',
+    locked: 'Ghi chú đang khoá — chạm để nhập mật khẩu',
   }[store.status];
 
   fill(root,
@@ -38,7 +38,9 @@ export function renderHeader(root, view, handlers) {
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Tháng trước', title: 'Tháng trước (←)', onclick: handlers.prev }, '‹'),
       h('button', { class: 'today-btn', type: 'button', title: 'Về hôm nay (T)', onclick: handlers.today }, 'Hôm nay'),
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Tháng sau', title: 'Tháng sau (→)', onclick: handlers.next }, '›'),
-      h('button', { class: 'sync-dot', type: 'button', dataset: { status: store.status }, title: statusText, 'aria-label': statusText, onclick: handlers.sync }),
+      store.locked
+        ? h('button', { class: 'icon-btn lock-btn', type: 'button', title: statusText, 'aria-label': statusText, onclick: handlers.unlock }, '🔒')
+        : h('button', { class: 'sync-dot', type: 'button', dataset: { status: store.status }, title: statusText, 'aria-label': statusText, onclick: handlers.sync }),
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Cài đặt', title: 'Cài đặt', onclick: handlers.settings }, '⚙'),
     ),
   );
@@ -109,6 +111,7 @@ export function renderAside(root, view, handlers) {
   const prev = MonthGrid.shiftMonth(view.y, view.m, -1);
   const next = MonthGrid.shiftMonth(view.y, view.m, 1);
   const key = `${view.y}-${String(view.m).padStart(2, '0')}`;
+  const notesIdx = store.notesIndex();
 
   const textarea = h('textarea', { id: 'monthNotes', rows: 6, placeholder: 'Việc cần nhớ trong tháng…', 'aria-label': 'Ghi chú tháng' });
   textarea.value = store.monthNote(key);
@@ -117,16 +120,20 @@ export function renderAside(root, view, handlers) {
   textarea.addEventListener('blur', () => { if (textarea.value !== store.monthNote(key)) store.saveMonthNote(key, textarea.value); });
 
   fill(root,
-    h('div', { class: 'minis' }, miniMonth(prev, handlers.jump), miniMonth(next, handlers.jump)),
-    h('label', { class: 'notes-box', for: 'monthNotes' }, h('span', { class: 'notes-label', text: 'Notes' }), textarea),
-    store.configured ? null : h('p', { class: 'local-hint' },
+    h('div', { class: 'minis' }, ...[prev, next].map((ym) => miniMonth(ym, handlers.jump, notesIdx))),
+    store.locked
+      ? h('div', { class: 'notes-box' },
+        h('span', { class: 'notes-label', text: 'Notes' }),
+        h('button', { class: 'unlock-btn', type: 'button', onclick: handlers.unlock }, '🔒 Nhập mật khẩu để xem ghi chú'))
+      : h('label', { class: 'notes-box', for: 'monthNotes' }, h('span', { class: 'notes-label', text: 'Notes' }), textarea),
+    store.configured || store.locked ? null : h('p', { class: 'local-hint' },
       'Ghi chú đang lưu trên máy này. ',
       h('button', { class: 'link-btn', type: 'button', onclick: handlers.settings }, 'Xem cách liên kết Google Sheet'),
       '.'),
   );
 }
 
-function miniMonth(ym, onJump) {
+function miniMonth(ym, onJump, notesIdx) {
   const today = todayParts();
   const weeks = MonthGrid.build(ym.y, ym.m);
   return h('section', { class: 'mini', 'aria-label': `${CanChi.monthVi(ym.m)} ${ym.y}` },
@@ -135,9 +142,12 @@ function miniMonth(ym, onJump) {
       h('span', { text: CanChi.monthEn(ym.m) })),
     h('div', { class: 'mini-grid' },
       MINI_WEEKDAYS.map((d, i) => h('span', { class: 'mini-dow' + (i === 6 ? ' sun' : ''), text: d })),
-      weeks.flatMap((w) => w.days.map((s, i) => s.inMonth
-        ? h('span', { class: 'mini-day' + (i === 6 ? ' sun' : '') + (MonthGrid.sameDay(s, today) ? ' today' : ''), text: String(s.d) })
-        : h('span', { class: 'mini-day empty' }))),
+      weeks.flatMap((w) => w.days.map((s, i) => {
+        if (!s.inMonth) return h('span', { class: 'mini-day empty' });
+        const note = notesIdx.get(dayKey(s))?.[0];
+        const cls = 'mini-day' + (i === 6 ? ' sun' : '') + (MonthGrid.sameDay(s, today) ? ' today' : '') + (note ? ' has-note' : '');
+        return h('span', { class: cls, style: note ? `--note:${note.color || '#C42B2B'}` : null, title: note ? note.title : null, text: String(s.d) });
+      })),
     ),
   );
 }

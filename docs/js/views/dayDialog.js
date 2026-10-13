@@ -1,6 +1,7 @@
 // Hộp thoại một ngày: xem ngày lễ, danh sách ghi chú, thêm/sửa ghi chú và nhắc nhở.
 import { h, fill, penMark, dmy, dayKey, pad2, todayParts, toast } from '../ui.js';
 import { store } from '../store.js';
+import { openPassword } from './password.js';
 
 const COLORS = [
   ['#C42B2B', 'Đỏ'], ['#1F5FBF', 'Xanh dương'], ['#3F8A3A', 'Xanh lá'],
@@ -27,7 +28,7 @@ export function openDay(s) {
 
 export function refreshDayDialog() {
   const dlg = dialog();
-  if (dlg.open && current && !dlg.querySelector('form.editor')) renderList();
+  if (dlg.open && current && (store.locked || !dlg.querySelector('form.editor'))) renderList();
 }
 
 function header(s) {
@@ -71,8 +72,10 @@ function renderList() {
   fill(dialog(),
     header(s),
     holidays.length ? h('ul', { class: 'holiday-list' }, holidays.map((x) => h('li', { text: x.name }))) : null,
-    list,
-    h('footer', { class: 'dlg-foot' },
+    store.locked
+      ? h('button', { class: 'unlock-btn', type: 'button', onclick: openPassword }, '🔒 Nhập mật khẩu để xem và thêm ghi chú')
+      : list,
+    store.locked ? null : h('footer', { class: 'dlg-foot' },
       h('button', { class: 'primary', type: 'button', onclick: () => renderEditor(null) }, 'Thêm ghi chú')),
   );
 }

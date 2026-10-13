@@ -34,6 +34,8 @@ tests/                    node --test (âm lịch, lần nhắc, backend Apps Sc
 
 - Thiết kế cho điện thoại trước: vùng chạm ≥ 44px, input ≥ 16px, hover chỉ trong `@media (hover: hover)`.
 - Web App mở cho "Bất kỳ ai", URL công khai trong `docs/js/config.js`; dữ liệu được bảo vệ bằng `APP_PASSWORD` (Script Properties, tuỳ chọn, khoá tạm sau 10 lần sai).
+- Mô hình: ai cũng xem lịch; ghi chú chỉ hiện khi đã mở khoá. Đã có API_URL thì `store.locked` cho tới khi máy chủ chấp nhận mật khẩu: các hàm đọc ghi chú trong store trả rỗng, giao diện hiện nút 🔒. Đọc ghi chú luôn qua các hàm đó, đừng đọc thẳng `store.notes`.
+- Khách chưa có mật khẩu thì KHÔNG gọi máy chủ (tránh làm tăng bộ đếm sai mật khẩu). Bị UNAUTHORIZED thì xoá mật khẩu đã lưu.
 - Không framework, không bundler, không thư viện ngoài.
 - Không dùng `innerHTML` với dữ liệu người dùng; dùng `h()` / `textContent`. Escape HTML khi gửi Telegram.
 - Request tới Apps Script: chỉ POST `text/plain;charset=utf-8`, không header tuỳ chỉnh (tránh CORS preflight).
