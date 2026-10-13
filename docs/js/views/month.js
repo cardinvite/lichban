@@ -1,5 +1,5 @@
 // Tờ lịch một tháng: header, lưới ngày, lịch mini, ô NOTES.
-import { h, fill, penMark, dayKey, todayParts, debounce } from '../ui.js';
+import { h, icon, fill, penMark, dayKey, todayParts, debounce } from '../ui.js';
 import { store } from '../store.js';
 
 const WEEKDAYS = [
@@ -35,13 +35,13 @@ export function renderHeader(root, view, handlers) {
       h('span', { class: 'month-vi', text: CanChi.monthVi(view.m) }),
     ),
     h('nav', { class: 'toolbar', 'aria-label': 'Điều hướng tháng' },
-      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Tháng trước', title: 'Tháng trước (←)', onclick: handlers.prev }, '‹'),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Tháng trước', title: 'Tháng trước (←)', onclick: handlers.prev }, icon('prev')),
       h('button', { class: 'today-btn', type: 'button', title: 'Về hôm nay (T)', onclick: handlers.today }, 'Hôm nay'),
-      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Tháng sau', title: 'Tháng sau (→)', onclick: handlers.next }, '›'),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Tháng sau', title: 'Tháng sau (→)', onclick: handlers.next }, icon('next')),
       store.locked
-        ? h('button', { class: 'icon-btn lock-btn', type: 'button', title: statusText, 'aria-label': statusText, onclick: handlers.unlock }, '🔒')
+        ? h('button', { class: 'icon-btn lock-btn', type: 'button', title: statusText, 'aria-label': statusText, onclick: handlers.unlock }, icon('lock'))
         : h('button', { class: 'sync-dot', type: 'button', dataset: { status: store.status }, title: statusText, 'aria-label': statusText, onclick: handlers.sync }),
-      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Cài đặt', title: 'Cài đặt', onclick: handlers.settings }, '⚙'),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Cài đặt', title: 'Cài đặt', onclick: handlers.settings }, icon('settings')),
     ),
   );
 }
@@ -124,7 +124,7 @@ export function renderAside(root, view, handlers) {
     store.locked
       ? h('div', { class: 'notes-box' },
         h('span', { class: 'notes-label', text: 'Notes' }),
-        h('button', { class: 'unlock-btn', type: 'button', onclick: handlers.unlock }, '🔒 Nhập mật khẩu để xem ghi chú'))
+        h('button', { class: 'unlock-btn', type: 'button', onclick: handlers.unlock }, icon('lock'), 'Nhập mật khẩu để xem ghi chú'))
       : h('label', { class: 'notes-box', for: 'monthNotes' }, h('span', { class: 'notes-label', text: 'Notes' }), textarea),
   );
 }

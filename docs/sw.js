@@ -1,5 +1,5 @@
 // Service worker: chạy được khi mất mạng. Đổi CACHE_VERSION mỗi lần cập nhật giao diện.
-const CACHE_VERSION = 'lichban-v8';
+const CACHE_VERSION = 'lichban-v9';
 const SHELL = [
   './',
   './index.html',

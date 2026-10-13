@@ -1,5 +1,5 @@
 // Hộp thoại một ngày: xem ngày lễ, danh sách ghi chú, thêm/sửa ghi chú và nhắc nhở.
-import { h, fill, penMark, dmy, dayKey, pad2, todayParts, toast } from '../ui.js';
+import { h, icon, fill, penMark, dmy, dayKey, pad2, todayParts, toast } from '../ui.js';
 import { store } from '../store.js';
 import { openPassword } from './password.js';
 
@@ -38,7 +38,7 @@ function header(s) {
       h('h2', { class: 'dlg-title', text: `${CanChi.weekday(s)}, ${dmy(s)}` }),
       h('p', { class: 'dlg-sub', text: CanChi.lunarLong(lunar) }),
     ),
-    h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Đóng', onclick: () => dialog().close() }, '×'),
+    h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Đóng', onclick: () => dialog().close() }, icon('close')),
   );
 }
 
@@ -73,7 +73,7 @@ function renderList() {
     header(s),
     holidays.length ? h('ul', { class: 'holiday-list' }, holidays.map((x) => h('li', { text: x.name }))) : null,
     store.locked
-      ? h('button', { class: 'unlock-btn', type: 'button', onclick: openPassword }, '🔒 Nhập mật khẩu để xem và thêm ghi chú')
+      ? h('button', { class: 'unlock-btn', type: 'button', onclick: openPassword }, icon('lock'), 'Nhập mật khẩu để xem và thêm ghi chú')
       : list,
     store.locked ? null : h('footer', { class: 'dlg-foot' },
       h('button', { class: 'primary', type: 'button', onclick: () => renderEditor(null) }, 'Thêm ghi chú')),

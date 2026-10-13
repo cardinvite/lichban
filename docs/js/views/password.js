@@ -1,5 +1,5 @@
 // Nhập mật khẩu (APP_PASSWORD trong Apps Script). Mỗi máy nhập một lần, lưu trong localStorage.
-import { h, toast } from '../ui.js';
+import { h, icon, toast } from '../ui.js';
 import { store } from '../store.js';
 
 const dialog = () => document.getElementById('passwordDialog');
@@ -15,7 +15,7 @@ export function openPassword() {
   const form = h('form', { class: 'settings' },
     h('header', { class: 'dlg-head' },
       h('h2', { class: 'dlg-title', text: 'Nhập mật khẩu' }),
-      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Đóng', onclick: () => dlg.close() }, '×')),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Đóng', onclick: () => dlg.close() }, icon('close'))),
     h('label', { class: 'field' }, 'Mật khẩu', input),
     result,
     h('footer', { class: 'dlg-foot' }, h('span', { class: 'spacer' }), submit),

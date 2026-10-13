@@ -123,12 +123,13 @@ button { cursor: pointer; }
   border: 1px solid var(--line);
   border-radius: 50%;
   background: var(--paper);
-  font-size: 1.25rem;
-  line-height: 1;
+  padding: 0;
+  color: var(--ink);
   display: inline-grid; place-items: center;
 }
+.icon { display: block; width: 20px; height: 20px; flex: none; }
 .today-btn {
-  height: 44px; padding: 0 18px;
+  height: 44px; padding: 0 18px; white-space: nowrap;
   border: 1px solid var(--line); border-radius: 22px;
   background: var(--paper);
   font-size: .85rem; font-weight: 600;
@@ -148,7 +149,7 @@ button { cursor: pointer; }
 .sync-dot[data-status="syncing"]::after { background: var(--warn); }
 .sync-dot[data-status="syncing"]::after { animation: pulse 1s ease-in-out infinite alternate; }
 .sync-dot[data-status="error"]::after { background: var(--red); }
-.lock-btn { margin-left: auto; font-size: 1rem; }
+.lock-btn { margin-left: auto; }
 @keyframes pulse { to { opacity: .35; } }
 
 /* ───── Lưới ───── */
@@ -282,6 +283,7 @@ button { cursor: pointer; }
   padding: 0 2px;
 }
 .unlock-btn {
+  display: inline-flex; align-items: center; gap: 8px;
   min-height: 44px; padding: 0 16px; border-radius: 22px;
   border: 1px dashed var(--muted); background: none;
   font-size: .9rem; text-align: left;
@@ -405,6 +407,13 @@ legend { font-size: .8rem; font-weight: 700; padding: 0 4px; }
   font-size: .9rem; z-index: 10;
 }
 #toast[data-type="error"] { background: var(--red); color: #fff; }
+
+/* Điện thoại rất hẹp (≤ 359px): thu gọn thanh công cụ cho vừa một hàng */
+@media (max-width: 359px) {
+  .toolbar { gap: 4px; }
+  .icon-btn { width: 40px; height: 40px; }
+  .today-btn { height: 40px; padding: 0 12px; }
+}
 
 /* ───── Chuột: hiệu ứng hover ───── */
 

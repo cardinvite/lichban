@@ -1,5 +1,5 @@
 // Cài đặt: kiểm tra kết nối Apps Script, thử Telegram, sao lưu.
-import { h, toast } from '../ui.js';
+import { h, icon, toast } from '../ui.js';
 import { store } from '../store.js';
 import { openPassword } from './password.js';
 
@@ -47,7 +47,7 @@ export function openSettings() {
   const form = h('div', { class: 'settings' },
     h('header', { class: 'dlg-head' },
       h('h2', { class: 'dlg-title', text: 'Cài đặt' }),
-      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Đóng', onclick: () => dialog().close() }, '×')),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Đóng', onclick: () => dialog().close() }, icon('close'))),
     connection,
     h('fieldset', {},
       h('legend', { text: 'Sao lưu' }),
