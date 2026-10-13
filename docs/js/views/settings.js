@@ -39,13 +39,10 @@ export function openSettings() {
   const connection = store.configured
     ? h('fieldset', {},
       h('legend', { text: 'Google Sheet' }),
-      h('p', { class: 'hint', text: 'Ghi chú tự lưu lên Google Sheet qua Apps Script và dùng chung trên mọi thiết bị.' }),
       h('div', { class: 'row-btns' }, testBtn, tgBtn,
         h('button', { type: 'button', onclick: () => { dialog().close(); openPassword(); } }, 'Nhập mật khẩu')),
       result)
-    : h('fieldset', {},
-      h('legend', { text: 'Google Sheet' }),
-      h('p', { class: 'hint', text: 'Chưa liên kết Apps Script: ghi chú chỉ lưu trên trình duyệt này. Dán URL Web App vào docs/js/config.js rồi push lên GitHub.' }));
+    : null;
 
   const form = h('div', { class: 'settings' },
     h('header', { class: 'dlg-head' },
@@ -54,14 +51,12 @@ export function openSettings() {
     connection,
     h('fieldset', {},
       h('legend', { text: 'Sao lưu' }),
-      h('p', { class: 'hint', text: 'Dữ liệu đã nằm trong Google Sheet. File sao lưu dùng khi muốn giữ một bản riêng hoặc chuyển sang tài khoản khác.' }),
       h('div', { class: 'row-btns' },
         h('button', { type: 'button', onclick: exportFile }, 'Tải bản sao lưu'),
         h('label', { class: 'file-btn' }, 'Khôi phục từ file',
           h('input', { type: 'file', accept: 'application/json,.json', onchange: importFile })))),
     h('fieldset', {},
       h('legend', { text: 'Trên máy này' }),
-      h('p', { class: 'hint', text: 'Xoá dữ liệu lưu tạm trên trình duyệt này. Dữ liệu trên Google Sheet không bị ảnh hưởng.' }),
       h('button', { class: 'danger', type: 'button', onclick: clearLocal }, 'Xoá dữ liệu trên máy này')),
   );
 

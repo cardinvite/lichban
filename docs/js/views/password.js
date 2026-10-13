@@ -16,7 +16,6 @@ export function openPassword() {
     h('header', { class: 'dlg-head' },
       h('h2', { class: 'dlg-title', text: 'Nhập mật khẩu' }),
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Đóng', onclick: () => dlg.close() }, '×')),
-    h('p', { class: 'hint', text: 'Lịch được khoá bằng mật khẩu đặt trong Apps Script (APP_PASSWORD). Chỉ cần nhập một lần trên máy này.' }),
     h('label', { class: 'field' }, 'Mật khẩu', input),
     result,
     h('footer', { class: 'dlg-foot' }, h('span', { class: 'spacer' }), submit),

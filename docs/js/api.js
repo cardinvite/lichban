@@ -18,20 +18,20 @@ async function once(url, password, action, payload) {
     });
     text = await res.text();
   } catch (err) {
-    throw new ApiError('NETWORK', 'Không kết nối được máy chủ. Kiểm tra mạng, và Web App phải để "Người có quyền truy cập: Bất kỳ ai".');
+    throw new ApiError('NETWORK', 'Không kết nối được máy chủ.');
   }
   if (!res.ok) {
-    throw new ApiError('HTTP', `Máy chủ Google trả lỗi tạm thời (HTTP ${res.status}). Thử lại sau ít phút.`);
+    throw new ApiError('HTTP', `Máy chủ đang bận (HTTP ${res.status}). Thử lại sau.`);
   }
   let body;
   try {
     body = JSON.parse(text);
   } catch {
     console.error('Phản hồi không phải JSON:', text.slice(0, 500));
-    throw new ApiError('BAD_RESPONSE', 'Máy chủ trả về trang HTML thay vì dữ liệu. Kiểm tra URL kết thúc bằng /exec và Web App để "Bất kỳ ai".');
+    throw new ApiError('BAD_RESPONSE', 'Máy chủ trả về dữ liệu không hợp lệ.');
   }
   if (body.ok === undefined) {
-    throw new ApiError('OLD_DEPLOYMENT', 'Apps Script đang chạy bản cũ. Vào Triển khai → Quản lý các lần triển khai → Sửa → Phiên bản mới.');
+    throw new ApiError('OLD_DEPLOYMENT', 'Máy chủ đang chạy phiên bản cũ.');
   }
   if (!body.ok) throw new ApiError(body.code || 'SERVER', body.message || 'Lỗi máy chủ.');
   return body.data;
@@ -39,7 +39,7 @@ async function once(url, password, action, payload) {
 
 /** Gọi API, tự thử lại 1 lần với lỗi tạm thời. password để trống nếu Apps Script không đặt APP_PASSWORD. */
 export async function callApi(apiUrl, password, action, payload = {}) {
-  if (!apiUrl) throw new ApiError('NOT_CONFIGURED', 'Chưa có API_URL trong docs/js/config.js.');
+  if (!apiUrl) throw new ApiError('NOT_CONFIGURED', 'Chưa kết nối máy chủ.');
   try {
     return await once(apiUrl, password, action, payload);
   } catch (err) {

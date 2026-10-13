@@ -126,10 +126,6 @@ export function renderAside(root, view, handlers) {
         h('span', { class: 'notes-label', text: 'Notes' }),
         h('button', { class: 'unlock-btn', type: 'button', onclick: handlers.unlock }, '🔒 Nhập mật khẩu để xem ghi chú'))
       : h('label', { class: 'notes-box', for: 'monthNotes' }, h('span', { class: 'notes-label', text: 'Notes' }), textarea),
-    store.configured || store.locked ? null : h('p', { class: 'local-hint' },
-      'Ghi chú đang lưu trên máy này. ',
-      h('button', { class: 'link-btn', type: 'button', onclick: handlers.settings }, 'Xem cách liên kết Google Sheet'),
-      '.'),
   );
 }
 

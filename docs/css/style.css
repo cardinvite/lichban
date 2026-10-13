@@ -286,8 +286,6 @@ button { cursor: pointer; }
   border: 1px dashed var(--muted); background: none;
   font-size: .9rem; text-align: left;
 }
-.local-hint { font-size: .78rem; color: var(--muted); line-height: 1.45; margin: 0; }
-.link-btn { border: 0; background: none; padding: 0; color: var(--sat); text-decoration: underline; font-size: inherit; }
 
 /* ───── Hộp thoại ───── */
 
@@ -394,7 +392,6 @@ legend { font-size: .8rem; font-weight: 700; padding: 0 4px; }
 .result { margin: 0; font-size: .85rem; min-height: 1.2em; }
 .result[data-type="ok"] { color: var(--ok); }
 .result[data-type="error"] { color: var(--red); }
-.hint { margin: 0; font-size: .82rem; color: var(--muted); line-height: 1.45; }
 .settings button.danger { align-self: flex-start; min-height: 44px; padding: 0; }
 
 /* ───── Thông báo nhỏ ───── */
