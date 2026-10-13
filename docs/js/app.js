@@ -3,6 +3,7 @@ import { store } from './store.js';
 import { renderHeader, renderGrid, renderAside } from './views/month.js';
 import { openDay, refreshDayDialog } from './views/dayDialog.js';
 import { openSettings } from './views/settings.js';
+import { openPassword } from './views/password.js';
 import { todayParts, toast } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
@@ -31,6 +32,7 @@ const handlers = {
   settings: openSettings,
   sync: () => {
     if (!store.configured) { openSettings(); return; }
+    if (store.status === 'auth') { openPassword(); return; }
     if (store.status === 'error') toast(store.statusMessage, 'error');
     store.sync();
   },
@@ -54,6 +56,7 @@ store.addEventListener('change', () => {
   refreshDayDialog();
 });
 store.addEventListener('status', () => renderHeader($('header'), view, handlers));
+store.addEventListener('auth', () => { if (!document.querySelector('dialog[open]')) openPassword(); });
 
 // Phím tắt (khi không gõ chữ và không mở hộp thoại)
 document.addEventListener('keydown', (e) => {

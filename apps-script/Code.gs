@@ -5,9 +5,9 @@
  *   - Code.gs   (file này)
  *   - Shared.gs (âm lịch, ngày lễ, tính lần nhắc — sinh từ docs/js/shared bằng scripts/build-gas.sh)
  *
- * Script Properties cần có:
+ * Script Properties:
+ *   APP_PASSWORD        mật khẩu mở lịch (để trống = ai có URL cũng dùng được)
  *   SHEET_ID            ID của Google Sheet (bỏ qua nếu script mở từ Tiện ích mở rộng của Sheet)
- *   API_TOKEN           chuỗi bí mật, web gửi kèm mọi request
  *   TELEGRAM_BOT_TOKEN  token từ @BotFather
  *   TELEGRAM_CHAT_ID    chat id nhận nhắc nhở
  *
@@ -18,6 +18,9 @@
 
 var TZ = 'Asia/Ho_Chi_Minh';
 var LOG_MAX_ROWS = 500;
+// Sai mật khẩu quá MAX_FAILS lần trong LOCK_SECONDS giây thì khoá tạm.
+var MAX_FAILS = 10;
+var LOCK_SECONDS = 600;
 
 // Cột mới luôn thêm vào CUỐI để dữ liệu cũ vẫn đọc đúng.
 var SCHEMA = {
@@ -61,7 +64,7 @@ function doPost(e) {
     return json_({ ok: false, code: 'BAD_REQUEST', message: 'Body không phải JSON.' });
   }
   try {
-    checkToken_(body.token);
+    checkPassword_(body.password);
     return json_({ ok: true, data: dispatch_(body.action, body.payload || {}) });
   } catch (err) {
     if (err instanceof ApiError) return json_({ ok: false, code: err.code, message: err.message });
@@ -98,15 +101,23 @@ function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
-function checkToken_(token) {
-  var expected = PropertiesService.getScriptProperties().getProperty('API_TOKEN');
-  if (!expected) throw new ApiError('CONFIG', 'Chưa đặt API_TOKEN trong Script Properties.');
-  var given = String(token || '');
+function checkPassword_(given) {
+  var expected = PropertiesService.getScriptProperties().getProperty('APP_PASSWORD');
+  if (!expected) return;
+  var cache = CacheService.getScriptCache();
+  var fails = Number(cache.get('pwFails') || 0);
+  if (fails >= MAX_FAILS) {
+    throw new ApiError('LOCKED', 'Nhập sai mật khẩu quá nhiều lần. Thử lại sau ' + (LOCK_SECONDS / 60) + ' phút.');
+  }
+  given = String(given || '');
   var diff = given.length === expected.length ? 0 : 1;
   for (var i = 0; i < expected.length; i++) {
     diff |= expected.charCodeAt(i) ^ (given.charCodeAt(i) || 0);
   }
-  if (diff !== 0) throw new ApiError('UNAUTHORIZED', 'Token không đúng.');
+  if (diff !== 0) {
+    cache.put('pwFails', String(fails + 1), LOCK_SECONDS);
+    throw new ApiError('UNAUTHORIZED', 'Mật khẩu không đúng.');
+  }
 }
 
 // ───────────────────────── Sheet ─────────────────────────
@@ -472,9 +483,6 @@ function log_(level, message) {
 /** Tạo các tab + header. Chạy lại bao nhiêu lần cũng được. */
 function setup() {
   ['Notes', 'Reminders', 'MonthNotes', 'Log'].forEach(sheet_);
-  if (!PropertiesService.getScriptProperties().getProperty('API_TOKEN')) {
-    Logger.log('⚠️ Chưa có API_TOKEN trong Script Properties.');
-  }
   Logger.log('✅ Đã tạo/kiểm tra các tab trong: ' + spreadsheet_().getUrl());
 }
 

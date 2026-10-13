@@ -1,10 +1,12 @@
 // Dữ liệu phía client: hiện ngay từ localStorage, ghi lạc quan, đồng bộ nền với Apps Script.
 import { callApi } from './api.js';
+import { API_URL } from './config.js';
 
 const KEYS = {
   data: 'lichban.data.v1',
   pending: 'lichban.pending.v1',
-  settings: 'lichban.settings.v1',
+  server: 'lichban.server.v1',
+  password: 'lichban.password.v1',
 };
 
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID()
@@ -27,14 +29,16 @@ class Store extends EventTarget {
     this.monthNotes = new Map((data.monthNotes || []).map((m) => [m.key, m]));
     this.lastSync = data.lastSync || '';
     this.pending = readJson(KEYS.pending, []);
-    this.settings = readJson(KEYS.settings, { apiUrl: '', token: '' });
+    this.apiUrl = API_URL.trim();
+    this.password = readJson(KEYS.password, '');
     this.status = this.configured ? (this.pending.length ? 'pending' : 'synced') : 'local';
     this.statusMessage = '';
     this.syncing = null;
     this.justSaved = null;
+    if (this.configured && readJson(KEYS.server, '') !== this.apiUrl) this.pushAllToNewServer();
   }
 
-  get configured() { return !!(this.settings.apiUrl && this.settings.token); }
+  get configured() { return !!this.apiUrl; }
 
   // ───── Đọc ─────
   notesForDay(key) {
@@ -159,7 +163,12 @@ class Store extends EventTarget {
         this.setStatus(this.pending.length ? 'pending' : 'synced');
       } catch (err) {
         console.error(err);
-        this.setStatus('error', err.message);
+        if (err.code === 'UNAUTHORIZED') {
+          this.setStatus('auth', err.message);
+          this.dispatchEvent(new Event('auth'));
+        } else {
+          this.setStatus('error', err.message);
+        }
       } finally {
         this.syncing = null;
       }
@@ -170,7 +179,7 @@ class Store extends EventTarget {
   async flush() {
     while (this.pending.length) {
       const op = this.pending[0];
-      const result = await callApi(this.settings, op.action, op.payload);
+      const result = await callApi(this.apiUrl, this.password, op.action, op.payload);
       if (this.pending[0] === op) this.pending.shift();
       this.applyServer(op.action, result);
       this.persist();
@@ -185,7 +194,7 @@ class Store extends EventTarget {
   }
 
   async pull() {
-    const data = await callApi(this.settings, 'getAll', { since: this.lastSync || undefined });
+    const data = await callApi(this.apiUrl, this.password, 'getAll', { since: this.lastSync || undefined });
     let changed = false;
     for (const n of data.notes || []) changed = this.merge(this.notes, n, 'id') || changed;
     for (const r of data.reminders || []) changed = this.merge(this.reminders, r, 'id') || changed;
@@ -207,20 +216,15 @@ class Store extends EventTarget {
     return true;
   }
 
-  // ───── Cài đặt ─────
-  saveSettings(settings) {
-    const changedTarget = settings.apiUrl !== this.settings.apiUrl;
-    this.settings = { apiUrl: settings.apiUrl.trim(), token: settings.token.trim() };
-    writeJson(KEYS.settings, this.settings);
-    if (changedTarget) {
-      // Máy chủ mới: đẩy toàn bộ dữ liệu trên máy lên rồi tải lại từ đầu
-      this.lastSync = '';
-      for (const n of this.notes.values()) this.enqueueSilently('upsertNote', n, n.id);
-      for (const r of this.reminders.values()) this.enqueueSilently('upsertReminder', r, r.id);
-      for (const m of this.monthNotes.values()) this.enqueueSilently('upsertMonthNote', m, 'month:' + m.key);
-      this.persist();
-    }
-    return this.sync();
+  // ───── Máy chủ ─────
+  /** Lần đầu gặp API_URL này: đẩy toàn bộ dữ liệu trên máy lên rồi tải lại từ đầu. */
+  pushAllToNewServer() {
+    this.lastSync = '';
+    for (const n of this.notes.values()) this.enqueueSilently('upsertNote', n, n.id);
+    for (const r of this.reminders.values()) this.enqueueSilently('upsertReminder', r, r.id);
+    for (const m of this.monthNotes.values()) this.enqueueSilently('upsertMonthNote', m, 'month:' + m.key);
+    this.persist();
+    writeJson(KEYS.server, this.apiUrl);
   }
 
   enqueueSilently(action, payload, id) {
@@ -267,8 +271,16 @@ class Store extends EventTarget {
     for (const k of Object.values(KEYS)) localStorage.removeItem(k);
   }
 
-  testTelegram() { return callApi(this.settings, 'testTelegram', {}); }
-  testConnection(settings) { return callApi(settings, 'getAll', { since: new Date().toISOString() }); }
+  testTelegram() { return callApi(this.apiUrl, this.password, 'testTelegram', {}); }
+  testConnection(password = this.password) { return callApi(this.apiUrl, password, 'getAll', { since: new Date().toISOString() }); }
+
+  /** Thử mật khẩu với máy chủ; đúng thì lưu trên máy này rồi đồng bộ. */
+  async login(password) {
+    await this.testConnection(password);
+    this.password = password;
+    writeJson(KEYS.password, password);
+    this.sync();
+  }
 }
 
 export const store = new Store();

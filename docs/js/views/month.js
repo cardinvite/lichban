@@ -22,6 +22,7 @@ export function renderHeader(root, view, handlers) {
     syncing: 'Đang đồng bộ…',
     pending: 'Chờ gửi lên Google Sheet',
     error: 'Lỗi đồng bộ: ' + store.statusMessage,
+    auth: 'Cần nhập mật khẩu',
   }[store.status];
 
   fill(root,
@@ -120,8 +121,8 @@ export function renderAside(root, view, handlers) {
     h('label', { class: 'notes-box', for: 'monthNotes' }, h('span', { class: 'notes-label', text: 'Notes' }), textarea),
     store.configured ? null : h('p', { class: 'local-hint' },
       'Ghi chú đang lưu trên máy này. ',
-      h('button', { class: 'link-btn', type: 'button', onclick: handlers.settings }, 'Kết nối Google Sheet'),
-      ' để dùng chung trên iPhone và Mac.'),
+      h('button', { class: 'link-btn', type: 'button', onclick: handlers.settings }, 'Xem cách liên kết Google Sheet'),
+      '.'),
   );
 }
 

@@ -1,17 +1,19 @@
 // Service worker: chạy được khi mất mạng. Đổi CACHE_VERSION mỗi lần cập nhật giao diện.
-const CACHE_VERSION = 'lichban-v1';
+const CACHE_VERSION = 'lichban-v3';
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './css/style.css',
   './js/app.js',
+  './js/config.js',
   './js/api.js',
   './js/store.js',
   './js/ui.js',
   './js/views/month.js',
   './js/views/dayDialog.js',
   './js/views/settings.js',
+  './js/views/password.js',
   './js/shared/lunar.js',
   './js/shared/canchi.js',
   './js/shared/holidays.js',
@@ -40,6 +42,15 @@ self.addEventListener('fetch', (e) => {
 
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (url.origin !== location.origin && !isFont) return;
+
+  // config.js (URL Apps Script): lấy từ mạng trước để đổi URL là có hiệu lực ngay
+  if (url.origin === location.origin && url.pathname.endsWith('/js/config.js')) {
+    e.respondWith(fetch(req).then((res) => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE_VERSION).then((c) => c.put(req, copy)); }
+      return res;
+    }).catch(() => caches.match(req, { ignoreSearch: true })));
+    return;
+  }
 
   // Trả bản trong cache ngay, đồng thời cập nhật cache từ mạng
   e.respondWith(caches.open(CACHE_VERSION).then(async (cache) => {

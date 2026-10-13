@@ -1,19 +1,19 @@
 // Gọi Google Apps Script Web App.
 // - POST text/plain: tránh CORS preflight (Apps Script không xử lý OPTIONS).
-// - Token nằm trong body, không bao giờ nằm trong URL.
+// - Mật khẩu nằm trong body, không bao giờ nằm trong URL.
 // - Apps Script trả 302 sang script.googleusercontent.com, fetch tự đi theo.
 
 export class ApiError extends Error {
   constructor(code, message) { super(message); this.code = code; }
 }
 
-async function once(url, token, action, payload) {
+async function once(url, password, action, payload) {
   let res, text;
   try {
     res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ token, action, payload }),
+      body: JSON.stringify({ password, action, payload }),
       redirect: 'follow',
     });
     text = await res.text();
@@ -37,15 +37,15 @@ async function once(url, token, action, payload) {
   return body.data;
 }
 
-/** Gọi API, tự thử lại 1 lần với lỗi tạm thời. */
-export async function callApi(settings, action, payload = {}) {
-  if (!settings.apiUrl) throw new ApiError('NOT_CONFIGURED', 'Chưa cấu hình API URL.');
+/** Gọi API, tự thử lại 1 lần với lỗi tạm thời. password để trống nếu Apps Script không đặt APP_PASSWORD. */
+export async function callApi(apiUrl, password, action, payload = {}) {
+  if (!apiUrl) throw new ApiError('NOT_CONFIGURED', 'Chưa có API_URL trong docs/js/config.js.');
   try {
-    return await once(settings.apiUrl, settings.token, action, payload);
+    return await once(apiUrl, password, action, payload);
   } catch (err) {
     if (err.code === 'HTTP' || err.code === 'BUSY') {
       await new Promise((r) => setTimeout(r, 1500));
-      return once(settings.apiUrl, settings.token, action, payload);
+      return once(apiUrl, password, action, payload);
     }
     throw err;
   }

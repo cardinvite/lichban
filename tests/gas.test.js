@@ -47,6 +47,7 @@ function fakeSheet(name) {
 function makeEnv(props) {
   const sheets = {};
   const telegram = [];
+  const cache = {};
   let fakeNow = null;
   const RealDate = Date;
   class FakeDate extends RealDate {
@@ -62,6 +63,7 @@ function makeEnv(props) {
     SpreadsheetApp: { getActiveSpreadsheet: () => ss, openById: () => ss },
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => props[k] || null }) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: (s) => ({ s, setMimeType() { return this; } }) },
+    CacheService: { getScriptCache: () => ({ get: (k) => cache[k] ?? null, put: (k, v) => { cache[k] = v; } }) },
     LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock() {}, releaseLock() {} }) },
     Utilities: {
       getUuid: () => crypto.randomUUID(),
@@ -78,21 +80,36 @@ function makeEnv(props) {
   vm.createContext(ctx);
   const dir = path.join(__dirname, '..', 'apps-script');
   vm.runInContext(fs.readFileSync(path.join(dir, 'Shared.gs'), 'utf8') + '\n' + fs.readFileSync(path.join(dir, 'Code.gs'), 'utf8'), ctx);
-  const call = (action, payload, token = props.API_TOKEN) => {
+  const call = (action, payload, password) => {
     vm.runInContext('sheetMemo_ = {}', ctx);
-    return JSON.parse(ctx.doPost({ postData: { contents: JSON.stringify({ token, action, payload }) } }).s);
+    return JSON.parse(ctx.doPost({ postData: { contents: JSON.stringify({ password, action, payload }) } }).s);
   };
   return { ctx, call, sheets, telegram, setNow: (iso) => { fakeNow = iso; } };
 }
 
-const PROPS = { API_TOKEN: 'secret-123', TELEGRAM_BOT_TOKEN: 'bot', TELEGRAM_CHAT_ID: '42' };
+const PROPS = { TELEGRAM_BOT_TOKEN: 'bot', TELEGRAM_CHAT_ID: '42' };
 const note = (over) => Object.assign({ id: 'n1', year: 2025, month: 11, day: 20, title: 'Sinh nhật mẹ', body: '', mark: 'circle', color: '#C42B2B', updatedAt: '2026-10-01T00:00:00.000Z' }, over);
 
-test('sai token bị từ chối', () => {
+test('action lạ bị từ chối', () => {
   const env = makeEnv(PROPS);
-  const r = env.call('getAll', {}, 'sai');
+  const r = env.call('dropAll', {});
   assert.equal(r.ok, false);
-  assert.equal(r.code, 'UNAUTHORIZED');
+  assert.equal(r.code, 'BAD_REQUEST');
+});
+
+test('không đặt APP_PASSWORD thì không cần mật khẩu', () => {
+  const env = makeEnv(PROPS);
+  assert.equal(env.call('getAll', {}).ok, true);
+});
+
+test('APP_PASSWORD: sai bị từ chối, đúng thì vào, sai nhiều lần bị khoá', () => {
+  const env = makeEnv({ ...PROPS, APP_PASSWORD: 'lich2026' });
+  env.ctx.setup();
+  assert.equal(env.call('getAll', {}).code, 'UNAUTHORIZED');
+  assert.equal(env.call('getAll', {}, 'sai').code, 'UNAUTHORIZED');
+  assert.equal(env.call('getAll', {}, 'lich2026').ok, true);
+  for (let i = 0; i < 10; i++) env.call('getAll', {}, 'sai');
+  assert.equal(env.call('getAll', {}, 'lich2026').code, 'LOCKED');
 });
 
 test('upsert + getAll + since + last-write-wins', () => {
