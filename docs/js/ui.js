@@ -74,7 +74,7 @@ export function penMark(kind, color, seed, animate) {
     for (let i = 0; i <= 8; i++) pts.push([8 + i * 10.5, 90 + Math.sin(i * 1.7 + r() * 3) * 4]);
     d = smoothPath(pts);
   } else if (kind === 'dot') {
-    el.append(svg('circle', { cx: 92, cy: 14, r: 7, fill: color }));
+    el.append(svg('circle', { cx: 50, cy: 50, r: 40, fill: color }));
     return el;
   } else {
     return null;
